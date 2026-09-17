@@ -6,6 +6,8 @@ Built using **Vite**, **React**, and **Tailwind CSS v4**.
 
 ---
 
+<img width="1901" height="950" alt="lead-agent-ss" src="https://github.com/user-attachments/assets/e4b639a5-e0c9-41a0-8d31-206ce298d225" />
+
 ## Key Features
 
 - **3-Pane Command Architecture:**
