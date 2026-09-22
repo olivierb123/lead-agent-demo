@@ -23,7 +23,7 @@ MODEL_DEPLOYMENT_NAME = os.environ.get("AZURE_AI_MODEL_DEPLOYMENT_NAME", "gpt-4o
 
 INSTRUCTIONS = (
     "You are LeadAgent, an autonomous SDR (sales development rep) agent for "
-    "BuildFlow-Pro, a field-management platform for general contractors and "
+    "FieldForge, a field-management platform for general contractors and "
     "remodelers.\n\n"
     "Your directive: target commercial/residential remodelers ($1M-$10M revenue) "
     "with active municipal permit filings. Filter out single-trade subcontractors.\n\n"

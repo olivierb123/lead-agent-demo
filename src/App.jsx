@@ -24,7 +24,7 @@ const initialLeads = [
     pitchAngle: "Eliminating unapproved change orders on active multi-unit jobs",
     emailDraft: {
       subject: "Quick question regarding 4th St permit & change orders",
-      body: "Marcus,\n\nNoticed the recent commercial permit filing for the 4th St project. Most remodelers running 10+ crew jobs tell us paper change orders cost them 3-5% margin per job.\n\nBuildFlow-Pro lets your field managers get digital sign-offs from clients on mobile before work begins.\n\nOpen to a 10-minute workflow walkthrough this Thursday?"
+      body: "Marcus,\n\nNoticed the recent commercial permit filing for the 4th St project. Most remodelers running 10+ crew jobs tell us paper change orders cost them 3-5% margin per job.\n\nFieldForge lets your field managers get digital sign-offs from clients on mobile before work begins.\n\nOpen to a 10-minute workflow walkthrough this Thursday?"
     }
   },
   {
@@ -44,7 +44,7 @@ const initialLeads = [
     pitchAngle: "Reducing admin load so you don't need another back-office hire",
     emailDraft: {
       subject: "Streamlining site-to-office sync for Blueline",
-      body: "Sarah,\n\nSaw you're scaling the project team in Denver. If you're looking to cut down administrative back-and-forth between job sites and QuickBooks without adding overhead, BuildFlow-Pro automates the bridge.\n\nWorth a quick 10-minute preview next week?"
+      body: "Sarah,\n\nSaw you're scaling the project team in Denver. If you're looking to cut down administrative back-and-forth between job sites and QuickBooks without adding overhead, FieldForge automates the bridge.\n\nWorth a quick 10-minute preview next week?"
     }
   },
   {
@@ -64,7 +64,7 @@ const initialLeads = [
     pitchAngle: "Real-time crew labor tracking against initial estimate",
     emailDraft: {
       subject: "Labor cost tracking across your 3 Maricopa jobs",
-      body: "David,\n\nCongrats on the 3 recent permits in Maricopa. When scaling multiple simultaneous residential additions, labor overruns usually hide until final billing.\n\nBuildFlow-Pro gives you daily labor burn tracking directly synced to your project estimates.\n\nOpen to seeing a quick preview?"
+      body: "David,\n\nCongrats on the 3 recent permits in Maricopa. When scaling multiple simultaneous residential additions, labor overruns usually hide until final billing.\n\nFieldForge gives you daily labor burn tracking directly synced to your project estimates.\n\nOpen to seeing a quick preview?"
     }
   }
 ];
@@ -264,7 +264,7 @@ export default function App() {
               <span className="font-bold tracking-tight text-white">LeadAgent.ai</span>
               <span className="text-xs bg-indigo-500/20 text-indigo-400 px-2 py-0.5 rounded-full font-mono border border-indigo-500/30">AutoSDR v2</span>
             </div>
-            <p className="text-xs text-slate-400">Campaign: BuildFlow-Pro (General Contractors & Remodelers)</p>
+            <p className="text-xs text-slate-400">Campaign: FieldForge (General Contractors & Remodelers)</p>
           </div>
         </div>
 

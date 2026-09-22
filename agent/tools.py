@@ -92,7 +92,7 @@ def qualify_lead(company: str, trigger: str, tech_stack: list[str]) -> dict:
         return {
             "qualified": True,
             "reason": f"{company} shows an active trigger ('{trigger}') and relies on "
-            "legacy/manual tooling, indicating high friction BuildFlow-Pro can solve.",
+            "legacy/manual tooling, indicating high friction FieldForge can solve.",
             "pitch_angle": "Eliminating unapproved change orders and manual admin overhead "
             "on active multi-unit jobs",
         }
@@ -127,7 +127,7 @@ def generate_pitch_email(lead: dict) -> dict:
         f"{owner_first},\n\n"
         f"Noticed: {trigger}. Teams running {size or 'a growing crew'} in {location} "
         f"tell us this is exactly when margin starts leaking to manual processes.\n\n"
-        f"BuildFlow-Pro focuses on {pitch_angle.lower()}.\n\n"
+        f"FieldForge focuses on {pitch_angle.lower()}.\n\n"
         f"Open to a 10-minute walkthrough this week?"
     )
     return {"subject": subject, "body": body}
