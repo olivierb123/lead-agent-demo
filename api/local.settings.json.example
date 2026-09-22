@@ -3,6 +3,9 @@
   "Values": {
     "AzureWebJobsStorage": "",
     "FUNCTIONS_WORKER_RUNTIME": "node",
-    "FOUNDRY_AGENT_URL": "http://localhost:8088/responses"
+    "FOUNDRY_AGENT_URL": "http://localhost:8088/responses",
+    "AZURE_TENANT_ID": "",
+    "AZURE_CLIENT_ID": "",
+    "AZURE_CLIENT_SECRET": ""
   }
 }
