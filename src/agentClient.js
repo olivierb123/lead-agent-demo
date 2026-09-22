@@ -63,7 +63,7 @@ export async function runAgentTurn(userMessage, callbacks = {}) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         input: userMessage,
-        previous_response_id: previousResponseId,
+        ...(previousResponseId ? { previous_response_id: previousResponseId } : {}),
         stream: true,
       }),
     });
