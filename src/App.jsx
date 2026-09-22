@@ -4,6 +4,7 @@ import {
   Send, Sparkles, Building2, User, Phone, Mail, 
   RefreshCw, Check, Clock, AlertCircle, Edit3, X, Filter
 } from 'lucide-react';
+import { runAgentTurn } from './agentClient';
 
 const initialLeads = [
   {
@@ -101,35 +102,149 @@ export default function App() {
 
   const addLog = (text, type = "info") => {
     const time = new Date().toLocaleTimeString();
-    setLogs(prev => [...prev.slice(-8), { id: Date.now(), time, text, type }]);
+    setLogs(prev => [...prev.slice(-8), { id: Date.now() + Math.random(), time, text, type }]);
+  };
+
+  const makeStreamingLogger = () => {
+    const idsByMessage = new Map();
+    return (messageId, text, type = "ai") => {
+      setLogs(prev => {
+        const existingId = idsByMessage.get(messageId);
+        if (existingId != null && prev.some(l => l.id === existingId)) {
+          return prev.map(l => (l.id === existingId ? { ...l, text } : l));
+        }
+        const id = Date.now() + Math.random();
+        idsByMessage.set(messageId, id);
+        const time = new Date().toLocaleTimeString();
+        return [...prev.slice(-8), { id, time, text, type }];
+      });
+    };
+  };
+
+  const upsertLead = (company, updater) => {
+    setLeads(prev => {
+      const idx = prev.findIndex(l => l.company === company);
+      if (idx === -1) {
+        const nextId = prev.length ? Math.max(...prev.map(l => l.id)) + 1 : 1;
+        return [...prev, updater({ id: nextId, company })];
+      }
+      return prev.map((l, i) => (i === idx ? updater(l) : l));
+    });
+  };
+
+  const handleToggleRunning = () => {
+    const nextRunning = !isRunning;
+    setIsRunning(nextRunning);
+    addLog(nextRunning ? "Agent execution loop resumed." : "Agent execution loop paused.", "info");
+    if (!nextRunning) return;
+
+    const activeFeed = feeds.find(f => f.active);
+    if (!activeFeed) {
+      addLog("No active ingestion feed selected.", "error");
+      return;
+    }
+
+    const streamLog = makeStreamingLogger();
+    const messageId = "ingest-turn";
+
+    runAgentTurn(
+      `Ingest leads from the ${activeFeed.name} feed and qualify each one. Do not draft emails or dispatch yet.`,
+      {
+        onText: (fullText) => {
+          streamLog(messageId, fullText, "ai");
+        },
+        onToolResult: ({ name, args, result }) => {
+          if (name === "ingest_permits") {
+            result.forEach(hit => {
+              upsertLead(hit.company, existing => ({
+                id: existing.id,
+                company: hit.company,
+                location: hit.location,
+                size: hit.size,
+                revenue: hit.revenue,
+                stage: "Discover",
+                owner: hit.owner,
+                role: hit.role,
+                email: hit.email,
+                phone: hit.phone,
+                status: "Permit Ingested",
+                trigger: hit.trigger,
+                techStack: hit.tech_stack,
+                pitchAngle: existing.pitchAngle || "",
+                emailDraft: existing.emailDraft || { subject: "", body: "" },
+              }));
+            });
+            addLog(`Ingested ${result.length} account(s) from [${activeFeed.name}]`, "success");
+          } else if (name === "qualify_lead") {
+            const { company } = args;
+            if (result.qualified) {
+              upsertLead(company, existing => ({
+                ...existing,
+                stage: "Qualify",
+                status: "Ready to Dispatch",
+                pitchAngle: result.pitch_angle,
+              }));
+              addLog(`Qualified ${company}: ${result.reason}`, "success");
+            } else {
+              setLeads(prev => prev.filter(l => l.company !== company));
+              addLog(`Disqualified ${company}: ${result.reason}`, "info");
+            }
+          }
+        },
+        onError: (message) => {
+          addLog(`Agent error: ${message}`, "error");
+        },
+      }
+    );
   };
 
   const handleDispatch = () => {
     if (selectedLead.stage === "Dispatched") return;
-    
-    setLeads(leads.map(l => l.id === selectedLead.id ? { ...l, stage: "Dispatched", status: "Sequence Active" } : l));
-    setDispatchedCount(prev => prev + 1);
-    addLog(`Dispatched multi-channel sequence to ${selectedLead.owner} (${selectedLead.company})`, "success");
+
+    runAgentTurn(
+      `Dispatch the lead '${selectedLead.company}' (lead_id='${selectedLead.company}') using dispatch_sequence.`,
+      {
+        onToolResult: ({ name, args, result }) => {
+          if (name !== "dispatch_sequence") return;
+          upsertLead(args.lead_id, existing => ({
+            ...existing,
+            stage: "Dispatched",
+            status: result.status,
+          }));
+          setDispatchedCount(prev => prev + 1);
+          addLog(result.message, "success");
+        },
+        onError: (message) => {
+          addLog(`Agent error: ${message}`, "error");
+        },
+      }
+    );
   };
 
   const handleAiRewrite = () => {
     setIsRegenerating(true);
-    setTimeout(() => {
-      setLeads(leads.map(l => {
-        if (l.id === selectedLead.id) {
-          return {
-            ...l,
-            emailDraft: {
-              ...l.emailDraft,
-              body: `${selectedLead.owner.split(' ')[0]},\n\nSaw your crew's recent project launch in ${selectedLead.location}. When managing ${selectedLead.size} across multiple job sites, unapproved change orders quickly eat into your 15% net margin.\n\nBuildFlow-Pro automates digital approvals in 30 seconds on mobile.\n\nWould 10 minutes on Thursday work for a quick look?`
-            }
-          };
-        }
-        return l;
-      }));
-      setIsRegenerating(false);
-      addLog(`AI regenerated high-urgency hook for ${selectedLead.company}`, "ai");
-    }, 700);
+
+    runAgentTurn(
+      `Regenerate the pitch email for lead_id='${selectedLead.company}' using generate_pitch_email. ` +
+        `Lead details: company=${selectedLead.company}, owner=${selectedLead.owner}, location=${selectedLead.location}, ` +
+        `size=${selectedLead.size}, trigger="${selectedLead.trigger}", pitch_angle="${selectedLead.pitchAngle}".`,
+      {
+        onToolResult: ({ name, args, result }) => {
+          if (name !== "generate_pitch_email") return;
+          const company = args.lead?.company || selectedLead.company;
+          upsertLead(company, existing => ({
+            ...existing,
+            emailDraft: { subject: result.subject, body: result.body },
+          }));
+          addLog(`AI regenerated pitch email for ${company}`, "ai");
+        },
+        onDone: () => setIsRegenerating(false),
+        onError: (message) => {
+          setIsRegenerating(false);
+          addLog(`Agent error: ${message}`, "error");
+        },
+      }
+    );
   };
 
   const filteredLeads = filterStage === 'All' 
@@ -161,11 +276,8 @@ export default function App() {
               {isRunning ? 'Autonomous Engine Active' : 'Pipeline Paused'}
             </span>
           </div>
-          <button 
-            onClick={() => {
-              setIsRunning(!isRunning);
-              addLog(isRunning ? "Agent execution loop paused." : "Agent execution loop resumed.", "info");
-            }}
+          <button
+            onClick={handleToggleRunning}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold cursor-pointer transition-all ${
               isRunning ? 'bg-amber-500/10 text-amber-400 border border-amber-500/30 hover:bg-amber-500/20' 
                         : 'bg-emerald-600 text-white hover:bg-emerald-500'
@@ -326,7 +438,8 @@ export default function App() {
                 <div key={log.id} className="flex gap-2">
                   <span className="text-slate-600">[{log.time}]</span>
                   <span className={
-                    log.type === 'ai' ? 'text-indigo-300 font-semibold' : 
+                    log.type === 'error' ? 'text-red-400 font-semibold' :
+                    log.type === 'ai' ? 'text-indigo-300 font-semibold' :
                     log.type === 'success' ? 'text-emerald-400' : 'text-slate-400'
                   }>
                     {log.text}

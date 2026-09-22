@@ -1,0 +1,14 @@
+{
+  "name": "lead-agent-demo-api",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "main": "src/functions/*.js",
+  "scripts": {
+    "start": "func start"
+  },
+  "dependencies": {
+    "@azure/functions": "^4.3.0",
+    "@azure/identity": "^4.5.0"
+  }
+}

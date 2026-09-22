@@ -11,6 +11,17 @@ node_modules
 dist
 dist-ssr
 *.local
+.env
+
+# Python agent
+agent/.venv
+agent/__pycache__
+agent/.env
+
+# Azure Functions API proxy
+api/node_modules
+api/local.settings.json
+.swa/
 
 # Editor directories and files
 .vscode/*
